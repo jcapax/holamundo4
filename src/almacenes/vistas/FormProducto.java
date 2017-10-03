@@ -8,8 +8,6 @@ package almacenes.vistas;
 import almacenes.conectorDB.DatabaseUtils;
 import almacenes.model.ListaProductos;
 import almacenes.model.Producto;
-import dao.MarcaDAOImpl;
-import dao.ProcedenciaDAOImpl;
 import dao.ProductoDAO;
 import dao.ProductoDAOImpl;
 import dao.RubroDAOImpl;
@@ -151,6 +149,8 @@ public class FormProducto extends javax.swing.JFrame {
             producto.setId(Integer.parseInt(jlIdProducto.getText()));
             producto.setIdRubroProducto(idRubroproducto);
             producto.setUsuario(usuario);
+            
+            fileInputStream = (FileInputStream) jlImage.getIcon();
 
             prodDAOImpl.editarProducto(producto, fileInputStream, longitudBytes);
         } else {
@@ -707,17 +707,17 @@ public class FormProducto extends javax.swing.JFrame {
         int width = jlImage.getWidth();
         int height = jlImage.getHeight();
 
-        if (p.getImage(idProducto) != null) {
+        if (p.getImage(idProducto) == null) {
             jlImage.setIcon(null);
             jlImage.updateUI();
         } else {
-            InputStream is = p.getImage(idProducto);
             BufferedImage bi;
             try {
-                bi = resize(ImageIO.read(is), width, height);
-                ImageIcon ii = new ImageIcon(bi);
+                InputStream is = p.getImage(idProducto);                
+                Image bi1 = ImageIO.read(is).getScaledInstance(width, height, Image.SCALE_DEFAULT);
+                ImageIcon ii = new ImageIcon(bi1);
                 jlImage.setIcon(ii);
-            jlImage.updateUI();
+                jlImage.updateUI();
             } catch (IOException ex) {
                 Logger.getLogger(FormProducto.class.getName()).log(Level.SEVERE, null, ex);
             }
