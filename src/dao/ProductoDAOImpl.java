@@ -40,37 +40,22 @@ public class ProductoDAOImpl implements ProductoDAO {
     }
 
     @Override
-    public ArrayList<ListaProductos> getListaProductos() {
-        String sql = "SELECT * FROM vproductos";
+    public ArrayList<Producto> getListaProductos() {
+        String sql = "SELECT * FROM producto";
 
-        ArrayList<ListaProductos> lproducto = new ArrayList<ListaProductos>();
+        ArrayList<Producto> lproducto = new ArrayList<Producto>();
 
         try {
             PreparedStatement ps = connectionDB.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                ListaProductos lProd = new ListaProductos();
+                Producto lProd = new Producto();
 
-                lProd.setId(rs.getInt("idProducto"));
-                lProd.setACTUALIZACION(rs.getInt("actualizacion"));
-                lProd.setControlStock(rs.getInt("controlStock"));
+                lProd.setId(rs.getInt("id"));                
                 lProd.setDescripcion(rs.getString("descripcion"));
                 lProd.setEstado(rs.getString("estado"));
-                lProd.setIDUNIDADMEDIDA(rs.getInt("idUnidadMedida"));
-                lProd.setIdMarca(rs.getInt("idMarca"));
-                lProd.setIdProcedencia(rs.getInt("idProcedencia"));
                 lProd.setIdRubroProducto(rs.getInt("idRubroProducto"));
-                lProd.setMarca(rs.getString("marca"));
-                lProd.setNombreUnidadMedida(rs.getString("nombreUnidadMedida"));
-                lProd.setPRECIOCOMPRA(rs.getDouble("precioCompra"));
-                lProd.setPRECIOVENTA(rs.getDouble("precioVenta"));
-                lProd.setPRECIOVENTAAUMENTO(rs.getDouble("precioVentaAumento"));
-                lProd.setPRECIOVENTAREBAJA(rs.getDouble("precioVentaRebaja"));
-                lProd.setProcedencia(rs.getString("procedencia"));
-                lProd.setRubro(rs.getString("rubro"));
-                lProd.setSTOCKMINIMO(rs.getDouble("stockMinimo"));
-                lProd.setUNIDADPRINCIPAL(rs.getInt("unidadPrincipal"));
-
+                
                 lproducto.add(lProd);
             }
 
@@ -84,20 +69,17 @@ public class ProductoDAOImpl implements ProductoDAO {
     @Override
     public void insertarProducto(Producto producto, InputStream image, int longitudBytes) {
         String sqlProd = "insert into "
-                + "producto(idRubroProducto, idMarca, idProcedencia, descripcion, estado, controlStock, usuario, imagen) "
-                + "values(?, ?, ?, ?, ?, ?, ?, ?)";
+                + "producto(idRubroProducto, descripcion, estado, usuario, imagen) "
+                + "values(?, ?, ?, ?, ?)";
 
         try {
             PreparedStatement ps = connectionDB.prepareStatement(sqlProd);
 
             ps.setInt(1, producto.getIdRubroProducto());
-            ps.setInt(2, producto.getIdMarca());
-            ps.setInt(3, producto.getIdProcedencia());
-            ps.setString(4, producto.getDescripcion());
-            ps.setString(5, producto.getEstado());
-            ps.setInt(6, producto.getControlStock());
-            ps.setString(7, producto.getUsuario());
-            ps.setBlob(8, image, longitudBytes);
+            ps.setString(2, producto.getDescripcion());
+            ps.setString(3, producto.getEstado());            
+            ps.setString(4, producto.getUsuario());
+            ps.setBlob(5, image, longitudBytes);
 
             int n = ps.executeUpdate();
             if (n > 0) {
@@ -110,6 +92,25 @@ public class ProductoDAOImpl implements ProductoDAO {
         }
     }
 
+    @Override
+    public void insertarProducto(Producto producto) {
+        String sqlProd = "insert into "
+                + "producto(idRubroProducto, descripcion, estado, usuario) "
+                + "values(?, ?, ?, ?)";
+
+        try {
+            PreparedStatement ps = connectionDB.prepareStatement(sqlProd);
+
+            ps.setInt(1, producto.getIdRubroProducto());            
+            ps.setString(2, producto.getDescripcion());
+            ps.setString(3, producto.getEstado());            
+            ps.setString(4, producto.getUsuario());
+            ps.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(ProductoDAOImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     @Override
     public ArrayList<ListaProductos> getListaProductosVenta(String criterio) {
         String sql = "SELECT * FROM vproductos WHERE estado = 'V' and descripcion like '%" + criterio + "%'";
@@ -207,18 +208,17 @@ public class ProductoDAOImpl implements ProductoDAO {
                 + "set idRubroProducto = ?, "
                 + "descripcion = ?, "
                 + "estado = ?, "
-                + "controlStock = ?, usuario = ?, "
+                + "usuario = ?, "
                 + "imagen = ? "
                 + "where id = ?";
         try {
             PreparedStatement ps = connectionDB.prepareStatement(sql);
             ps.setInt(1, producto.getIdRubroProducto());
             ps.setString(2, producto.getDescripcion());
-            ps.setString(3, producto.getEstado());
-            ps.setInt(4, producto.getControlStock());
-            ps.setString(5, producto.getUsuario());
-            ps.setBlob(6, image, longitudBytes);
-            ps.setInt(7, producto.getId());
+            ps.setString(3, producto.getEstado());            
+            ps.setString(4, producto.getUsuario());
+            ps.setBlob(5, image, longitudBytes);
+            ps.setInt(6, producto.getId());
 
             ps.executeUpdate();
 
@@ -228,37 +228,37 @@ public class ProductoDAOImpl implements ProductoDAO {
 
     }
 
-//    @Override
-//    public ImageIcon getImage(int idProducto, int width, int height) {
-//        ImageIcon ii = null;
-//        InputStream is = null;
-//
-//        String sql = "select imagen from producto where id = ?";
-//        PreparedStatement ps;
-//        try {
-//            ps = connectionDB.prepareStatement(sql);
-//            ps.setInt(1, idProducto);
-//            ResultSet rs = ps.executeQuery();
-//            while (rs.next()) {
-//                try {
-//                    is = rs.getBinaryStream(1);
-//                    BufferedImage bi = resize(ImageIO.read(is), width, height);
-//                    ii = new ImageIcon(bi);
-//                } catch (Exception e) {                    
-//                }
-//
-//            }
-//        } catch (SQLException ex) {
-//            Logger.getLogger(ProductoDAOImpl.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//        return ii;
-//    }
     @Override
-    public InputStream getImage(int idProducto) {
-        
+    public void editarProducto(Producto producto) {
+        String sql = "update producto "
+                + "set idRubroProducto = ?, "
+                + "descripcion = ?, "
+                + "estado = ?, "
+                + "controlStock = ?, usuario = ? "                
+                + "where id = ?";
+        try {
+            PreparedStatement ps = connectionDB.prepareStatement(sql);
+            ps.setInt(1, producto.getIdRubroProducto());
+            ps.setString(2, producto.getDescripcion());
+            ps.setString(3, producto.getEstado());
+            ps.setInt(4, producto.getControlStock());
+            ps.setString(5, producto.getUsuario());            
+            ps.setInt(6, producto.getId());
+
+            ps.executeUpdate();
+
+        } catch (SQLException ex) {
+            Logger.getLogger(ProductoDAOImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+    
+    @Override
+    public ImageIcon getImage(int idProducto, int width, int height) {
+        ImageIcon ii = null;
         InputStream is = null;
 
-        String sql = "select imagen from producto where id = ? and imagen is not null";
+        String sql = "select imagen from producto where id = ?";
         PreparedStatement ps;
         try {
             ps = connectionDB.prepareStatement(sql);
@@ -266,16 +266,41 @@ public class ProductoDAOImpl implements ProductoDAO {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 try {
-                    is = rs.getBinaryStream(1);                    
-                } catch (Exception e) {
+                    is = rs.getBinaryStream(1);
+                    BufferedImage bi = resize(ImageIO.read(is), width, height);
+                    ii = new ImageIcon(bi);
+                } catch (Exception e) {                    
                 }
 
             }
         } catch (SQLException ex) {
             Logger.getLogger(ProductoDAOImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return is;
+        return ii;
     }
+//    @Override
+//    public FileInputStream getImage(int idProducto) {
+//        
+//        FileInputStream is = null;
+//
+//        String sql = "select imagen from producto where id = ? and imagen is not null";
+//        PreparedStatement ps;
+//        try {
+//            ps = connectionDB.prepareStatement(sql);
+//            ps.setInt(1, idProducto);
+//            ResultSet rs = ps.executeQuery();
+//            while (rs.next()) {
+//                try {
+//                    is = rs.getBinaryStream(1);                    
+//                } catch (Exception e) {
+//                }
+//
+//            }
+//        } catch (SQLException ex) {
+//            Logger.getLogger(ProductoDAOImpl.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//        return is;
+//    }
 
     public static BufferedImage resize(BufferedImage image, int width, int height) {
         BufferedImage bi = new BufferedImage(width, height, BufferedImage.TRANSLUCENT);

@@ -8,6 +8,7 @@ package dao;
 import almacenes.model.ListaProductos;
 import almacenes.model.Producto;
 import almacenes.model.StockProducto;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import javax.swing.ImageIcon;
@@ -18,12 +19,14 @@ import javax.swing.ImageIcon;
  */
 public interface ProductoDAO {
     
-    public ArrayList<ListaProductos> getListaProductos();
+    public ArrayList<Producto> getListaProductos();
     public ArrayList<ListaProductos> getListaProductosVenta(String criterio);
     public void insertarProducto(Producto producto, InputStream image, int longitudBytes);
+    public void insertarProducto(Producto producto);
     public ArrayList<StockProducto> getListaStockProducto(byte idLugar, String criterio);
     public byte getControlStock(int idProducto);
     public void editarProducto(Producto producto, InputStream image, int longitudBytes);
-//    public ImageIcon getImage(int idProducto, int width, int height);
-    public InputStream getImage(int idProducto);
+    public void editarProducto(Producto producto);
+    public ImageIcon getImage(int idProducto, int width, int height);
+//    public FileInputStream getImage(int idProducto);
 }

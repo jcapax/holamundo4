@@ -45,6 +45,7 @@ public class FormProducto extends javax.swing.JFrame {
     private DatabaseUtils databaseUtils;
     private Connection connectionDB;
     private String usuario;
+    private int clickImagen = 0;
 
     FileInputStream fileInputStream;
     int longitudBytes;
@@ -65,7 +66,7 @@ public class FormProducto extends javax.swing.JFrame {
 
         ProductoDAOImpl prodDAOImpl = new ProductoDAOImpl(connectionDB);
 
-        ArrayList<ListaProductos> lProd = new ArrayList<>();
+        ArrayList<Producto> lProd = new ArrayList<>();
 
         lProd = prodDAOImpl.getListaProductos();
 
@@ -74,46 +75,32 @@ public class FormProducto extends javax.swing.JFrame {
 
         jtProductos.setModel(dtm);
 
-        Object[] fila = new Object[19];
+        Object[] fila = new Object[5];
 
         boolean aux = true;
 
         for (int i = 0; i < lProd.size(); i++) {
             fila[0] = lProd.get(i).getId();
-            fila[1] = lProd.get(i).getIdRubroProducto();
-            fila[2] = lProd.get(i).getRubro();
-            fila[3] = lProd.get(i).getIdMarca();
-            fila[4] = lProd.get(i).getMarca();
-            fila[5] = lProd.get(i).getIdProcedencia();
-            fila[6] = lProd.get(i).getProcedencia();
-            fila[7] = lProd.get(i).getDescripcion();
-            fila[8] = (lProd.get(i).getEstado().equals("V")) ? true : false;
-            fila[9] = (lProd.get(i).getControlStock() == 1) ? true : false;
-            fila[10] = lProd.get(i).getIDUNIDADMEDIDA();
-            fila[11] = lProd.get(i).getNombreUnidadMedida();
-            fila[12] = lProd.get(i).getUNIDADPRINCIPAL();
-            fila[13] = lProd.get(i).getSTOCKMINIMO();
-            fila[14] = df.format(lProd.get(i).getPRECIOVENTA());
-            fila[15] = lProd.get(i).getPRECIOVENTAREBAJA();
-            fila[16] = lProd.get(i).getPRECIOVENTAAUMENTO();
-            fila[17] = df.format(lProd.get(i).getPRECIOCOMPRA());
-            fila[18] = lProd.get(i).getACTUALIZACION();
-
+            fila[1] = lProd.get(i).getIdRubroProducto();                        
+            fila[2] = lProd.get(i).getDescripcion();
+            fila[3] = (lProd.get(i).getEstado().equals("V")) ? true : false;
+            fila[4] = (lProd.get(i).getControlStock() == 1) ? true : false;
+            
             dtm.addRow(fila);
         }
 
         TableColumnModel columnModel = jtProductos.getColumnModel();
-
-        TableColumn colStockMin = columnModel.getColumn(13);
-        TableColumn colPVenta = columnModel.getColumn(14);
-        TableColumn colPCompra = columnModel.getColumn(17);
-
-        DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
-        renderer.setHorizontalAlignment(jLabel4.RIGHT);
-
-        colStockMin.setCellRenderer(renderer);
-        colPVenta.setCellRenderer(renderer);
-        colPCompra.setCellRenderer(renderer);
+//
+//        TableColumn colStockMin = columnModel.getColumn(13);
+//        TableColumn colPVenta = columnModel.getColumn(14);
+//        TableColumn colPCompra = columnModel.getColumn(17);
+//
+//        DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
+//        renderer.setHorizontalAlignment(jLabel4.RIGHT);
+//
+//        colStockMin.setCellRenderer(renderer);
+//        colPVenta.setCellRenderer(renderer);
+//        colPCompra.setCellRenderer(renderer);
 
         jtProductos.setModel(dtm);
     }
@@ -133,31 +120,31 @@ public class FormProducto extends javax.swing.JFrame {
             estado = "A";
         }
 
-        if (jchControlStock.isSelected()) {
-            controlStock = 1;
-        } else {
-            controlStock = 0;
-        }
-
         ProductoDAOImpl prodDAOImpl = new ProductoDAOImpl(connectionDB);
 
         if (ljEditar.getText().equals("1")) {
-            Producto producto = new Producto();
-            producto.setControlStock(controlStock);
+            Producto producto = new Producto();            
             producto.setDescripcion(descripcion.toUpperCase());
             producto.setEstado(estado);
             producto.setId(Integer.parseInt(jlIdProducto.getText()));
             producto.setIdRubroProducto(idRubroproducto);
             producto.setUsuario(usuario);
-            
-            fileInputStream = (FileInputStream) jlImage.getIcon();
 
-            prodDAOImpl.editarProducto(producto, fileInputStream, longitudBytes);
+            if(clickImagen==1){
+                prodDAOImpl.editarProducto(producto, fileInputStream, longitudBytes);
+            }
+            else{
+                prodDAOImpl.editarProducto(producto);
+            }            
         } else {
             Producto producto = new Producto("", idRubroproducto, descripcion, "",
-                    estado, 0, controlStock, usuario);
+                    estado, usuario);
 
-            prodDAOImpl.insertarProducto(producto, this.fileInputStream, this.longitudBytes);
+            if(clickImagen==1){
+                prodDAOImpl.insertarProducto(producto, this.fileInputStream, this.longitudBytes);
+            }else{
+                prodDAOImpl.insertarProducto(producto);
+            }            
         }
 
         llenarTablaProductos();
@@ -210,7 +197,6 @@ public class FormProducto extends javax.swing.JFrame {
         jtxtNombreProducto = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
         jchEstado = new javax.swing.JCheckBox();
-        jchControlStock = new javax.swing.JCheckBox();
         jbGuardar = new javax.swing.JButton();
         jlIdMarca = new javax.swing.JLabel();
         jlIdProcedencia = new javax.swing.JLabel();
@@ -262,9 +248,6 @@ public class FormProducto extends javax.swing.JFrame {
             }
         });
 
-        jchControlStock.setForeground(new java.awt.Color(153, 0, 51));
-        jchControlStock.setText("Control Stock");
-
         jbGuardar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Imagenes/Save-icon.png"))); // NOI18N
         jbGuardar.setText("Guardar");
         jbGuardar.addActionListener(new java.awt.event.ActionListener() {
@@ -278,14 +261,14 @@ public class FormProducto extends javax.swing.JFrame {
 
             },
             new String [] {
-                "id", "IdRubroProducto", "Rubro", "idMarca", "Marca", "idProcedencia", "Procedencia", "Descripcion", "Estado", "Stock", "idUnidadMedida", "U. Medida", "Unidad Principa", "Stock Min.", "P. Venta", "Precio Venta Rebaja", "Precio Venta Aumento", "P. Compra", "Actualizacion"
+                "id", "rubro", "Descripcion", "Estado", "Stock"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Boolean.class, java.lang.Boolean.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
+                java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Boolean.class, java.lang.Boolean.class
             };
             boolean[] canEdit = new boolean [] {
-                true, true, true, true, true, true, true, true, false, true, true, true, false, true, true, true, true, true, false
+                true, true, true, false, true
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -311,60 +294,18 @@ public class FormProducto extends javax.swing.JFrame {
             jtProductos.getColumnModel().getColumn(0).setMinWidth(0);
             jtProductos.getColumnModel().getColumn(0).setPreferredWidth(0);
             jtProductos.getColumnModel().getColumn(0).setMaxWidth(0);
-            jtProductos.getColumnModel().getColumn(1).setMinWidth(0);
-            jtProductos.getColumnModel().getColumn(1).setPreferredWidth(0);
-            jtProductos.getColumnModel().getColumn(1).setMaxWidth(0);
-            jtProductos.getColumnModel().getColumn(2).setMinWidth(85);
-            jtProductos.getColumnModel().getColumn(2).setPreferredWidth(85);
-            jtProductos.getColumnModel().getColumn(2).setMaxWidth(85);
-            jtProductos.getColumnModel().getColumn(3).setMinWidth(0);
-            jtProductos.getColumnModel().getColumn(3).setPreferredWidth(0);
-            jtProductos.getColumnModel().getColumn(3).setMaxWidth(0);
-            jtProductos.getColumnModel().getColumn(4).setMinWidth(0);
-            jtProductos.getColumnModel().getColumn(4).setPreferredWidth(0);
-            jtProductos.getColumnModel().getColumn(4).setMaxWidth(0);
-            jtProductos.getColumnModel().getColumn(5).setMinWidth(0);
-            jtProductos.getColumnModel().getColumn(5).setPreferredWidth(0);
-            jtProductos.getColumnModel().getColumn(5).setMaxWidth(0);
-            jtProductos.getColumnModel().getColumn(6).setMinWidth(0);
-            jtProductos.getColumnModel().getColumn(6).setPreferredWidth(0);
-            jtProductos.getColumnModel().getColumn(6).setMaxWidth(0);
-            jtProductos.getColumnModel().getColumn(7).setMinWidth(250);
-            jtProductos.getColumnModel().getColumn(7).setPreferredWidth(250);
-            jtProductos.getColumnModel().getColumn(7).setMaxWidth(250);
-            jtProductos.getColumnModel().getColumn(8).setMinWidth(60);
-            jtProductos.getColumnModel().getColumn(8).setPreferredWidth(60);
-            jtProductos.getColumnModel().getColumn(8).setMaxWidth(60);
-            jtProductos.getColumnModel().getColumn(9).setMinWidth(60);
-            jtProductos.getColumnModel().getColumn(9).setPreferredWidth(60);
-            jtProductos.getColumnModel().getColumn(9).setMaxWidth(60);
-            jtProductos.getColumnModel().getColumn(10).setMinWidth(0);
-            jtProductos.getColumnModel().getColumn(10).setPreferredWidth(0);
-            jtProductos.getColumnModel().getColumn(10).setMaxWidth(0);
-            jtProductos.getColumnModel().getColumn(11).setMinWidth(85);
-            jtProductos.getColumnModel().getColumn(11).setPreferredWidth(85);
-            jtProductos.getColumnModel().getColumn(11).setMaxWidth(85);
-            jtProductos.getColumnModel().getColumn(12).setMinWidth(0);
-            jtProductos.getColumnModel().getColumn(12).setPreferredWidth(0);
-            jtProductos.getColumnModel().getColumn(12).setMaxWidth(0);
-            jtProductos.getColumnModel().getColumn(13).setMinWidth(90);
-            jtProductos.getColumnModel().getColumn(13).setPreferredWidth(90);
-            jtProductos.getColumnModel().getColumn(13).setMaxWidth(90);
-            jtProductos.getColumnModel().getColumn(14).setMinWidth(90);
-            jtProductos.getColumnModel().getColumn(14).setPreferredWidth(90);
-            jtProductos.getColumnModel().getColumn(14).setMaxWidth(90);
-            jtProductos.getColumnModel().getColumn(15).setMinWidth(0);
-            jtProductos.getColumnModel().getColumn(15).setPreferredWidth(0);
-            jtProductos.getColumnModel().getColumn(15).setMaxWidth(0);
-            jtProductos.getColumnModel().getColumn(16).setMinWidth(0);
-            jtProductos.getColumnModel().getColumn(16).setPreferredWidth(0);
-            jtProductos.getColumnModel().getColumn(16).setMaxWidth(0);
-            jtProductos.getColumnModel().getColumn(17).setMinWidth(90);
-            jtProductos.getColumnModel().getColumn(17).setPreferredWidth(90);
-            jtProductos.getColumnModel().getColumn(17).setMaxWidth(90);
-            jtProductos.getColumnModel().getColumn(18).setMinWidth(0);
-            jtProductos.getColumnModel().getColumn(18).setPreferredWidth(0);
-            jtProductos.getColumnModel().getColumn(18).setMaxWidth(0);
+            jtProductos.getColumnModel().getColumn(1).setMinWidth(80);
+            jtProductos.getColumnModel().getColumn(1).setPreferredWidth(80);
+            jtProductos.getColumnModel().getColumn(1).setMaxWidth(80);
+            jtProductos.getColumnModel().getColumn(2).setMinWidth(250);
+            jtProductos.getColumnModel().getColumn(2).setPreferredWidth(250);
+            jtProductos.getColumnModel().getColumn(2).setMaxWidth(250);
+            jtProductos.getColumnModel().getColumn(3).setMinWidth(60);
+            jtProductos.getColumnModel().getColumn(3).setPreferredWidth(60);
+            jtProductos.getColumnModel().getColumn(3).setMaxWidth(60);
+            jtProductos.getColumnModel().getColumn(4).setMinWidth(60);
+            jtProductos.getColumnModel().getColumn(4).setPreferredWidth(60);
+            jtProductos.getColumnModel().getColumn(4).setMaxWidth(60);
         }
 
         jButton2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Imagenes/unidadProducto.png"))); // NOI18N
@@ -460,8 +401,7 @@ public class FormProducto extends javax.swing.JFrame {
                                             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                                                 .addComponent(jcRubro, javax.swing.GroupLayout.PREFERRED_SIZE, 214, javax.swing.GroupLayout.PREFERRED_SIZE)
                                                 .addComponent(jlIdMarca))
-                                            .addComponent(jchEstado)
-                                            .addComponent(jchControlStock))))
+                                            .addComponent(jchEstado))))
                                 .addGap(18, 18, 18)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(layout.createSequentialGroup()
@@ -497,9 +437,7 @@ public class FormProducto extends javax.swing.JFrame {
                             .addComponent(jtxtNombreProducto, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel4))
                         .addGap(18, 18, 18)
-                        .addComponent(jchEstado)
-                        .addGap(18, 18, 18)
-                        .addComponent(jchControlStock))
+                        .addComponent(jchEstado))
                     .addComponent(jlImage, javax.swing.GroupLayout.PREFERRED_SIZE, 190, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 27, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -532,6 +470,7 @@ public class FormProducto extends javax.swing.JFrame {
         byte x = 2;
         botones(x);
         guardarProducto();
+        clickImagen = 0;
     }//GEN-LAST:event_jbGuardarActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
@@ -561,11 +500,16 @@ public class FormProducto extends javax.swing.JFrame {
     private void jbNuevoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbNuevoActionPerformed
         byte x = 1;
         botones(x);
+        ljEditar.setText("0");
+        clickImagen = 1;
+        jlImage.setIcon(null);
+        jlImage.updateUI();
     }//GEN-LAST:event_jbNuevoActionPerformed
 
     private void jbCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbCancelarActionPerformed
         byte x = 4;
         botones(x);
+        clickImagen = 0;
     }//GEN-LAST:event_jbCancelarActionPerformed
 
     private void jbSalirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbSalirActionPerformed
@@ -581,20 +525,27 @@ public class FormProducto extends javax.swing.JFrame {
     }//GEN-LAST:event_formWindowGainedFocus
 
     private void jlImageMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jlImageMouseClicked
-        JFileChooser jFileChooser = new JFileChooser();
-        jFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        int estado = jFileChooser.showOpenDialog(null);
-        if (estado == JFileChooser.APPROVE_OPTION) {
-            try {
-                fileInputStream = new FileInputStream(jFileChooser.getSelectedFile());
-                longitudBytes = (int) jFileChooser.getSelectedFile().length();
-                Image image = ImageIO.read(jFileChooser.getSelectedFile()).getScaledInstance(jlImage.getWidth(), jlImage.getHeight(), Image.SCALE_DEFAULT);
-                jlImage.setIcon(new ImageIcon(image));
-                jlImage.updateUI();
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(FormProducto.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                Logger.getLogger(FormProducto.class.getName()).log(Level.SEVERE, null, ex);
+        if (ljEditar.getText().equals("1") || clickImagen == 1) {
+            clickImagen = 1;
+            
+            jlImage.setIcon(null);
+            jlImage.updateUI();
+            
+            JFileChooser jFileChooser = new JFileChooser();
+            jFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            int estado = jFileChooser.showOpenDialog(null);
+            if (estado == JFileChooser.APPROVE_OPTION) {
+                try {
+                    fileInputStream = new FileInputStream(jFileChooser.getSelectedFile());
+                    longitudBytes = (int) jFileChooser.getSelectedFile().length();
+                    Image image = ImageIO.read(jFileChooser.getSelectedFile()).getScaledInstance(jlImage.getWidth(), jlImage.getHeight(), Image.SCALE_DEFAULT);
+                    jlImage.setIcon(new ImageIcon(image));
+                    jlImage.updateUI();
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(FormProducto.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(FormProducto.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         }
     }//GEN-LAST:event_jlImageMouseClicked
@@ -645,7 +596,6 @@ public class FormProducto extends javax.swing.JFrame {
     private javax.swing.JButton jbNuevo;
     private javax.swing.JButton jbSalir;
     private javax.swing.JComboBox<String> jcRubro;
-    private javax.swing.JCheckBox jchControlStock;
     private javax.swing.JCheckBox jchEstado;
     private javax.swing.JLabel jlIdMarca;
     private javax.swing.JLabel jlIdProcedencia;
@@ -681,22 +631,18 @@ public class FormProducto extends javax.swing.JFrame {
         }
     }
 
-    private void seleccionarProducto() {
+    private void seleccionarProducto() {       
+        
         int fila = jtProductos.getSelectedRow();
 
         jlIdProducto.setText(jtProductos.getValueAt(fila, 0).toString());
 
-        String rubro = jtProductos.getValueAt(fila, 2).toString();
+        String rubro = jtProductos.getValueAt(fila, 1).toString();
         jcRubro.setSelectedItem(rubro);
 
-        jtxtNombreProducto.setText(jtProductos.getValueAt(fila, 7).toString());
+        jtxtNombreProducto.setText(jtProductos.getValueAt(fila, 2).toString());
 
-        jchEstado.setSelected(Boolean.parseBoolean(jtProductos.getValueAt(fila, 8).toString()));
-
-        boolean aux = false;
-        aux = (Boolean.parseBoolean(jtProductos.getValueAt(fila, 9).toString())) ? true : false;
-
-        jchControlStock.setSelected(aux);
+        jchEstado.setSelected(Boolean.parseBoolean(jtProductos.getValueAt(fila, 3).toString()));
 
         recuperarImagen(Integer.valueOf(jtProductos.getValueAt(fila, 0).toString()));
     }
@@ -707,20 +653,12 @@ public class FormProducto extends javax.swing.JFrame {
         int width = jlImage.getWidth();
         int height = jlImage.getHeight();
 
-        if (p.getImage(idProducto) == null) {
+        if (p.getImage(idProducto, width, height) == null) {
             jlImage.setIcon(null);
             jlImage.updateUI();
-        } else {
-            BufferedImage bi;
-            try {
-                InputStream is = p.getImage(idProducto);                
-                Image bi1 = ImageIO.read(is).getScaledInstance(width, height, Image.SCALE_DEFAULT);
-                ImageIcon ii = new ImageIcon(bi1);
-                jlImage.setIcon(ii);
-                jlImage.updateUI();
-            } catch (IOException ex) {
-                Logger.getLogger(FormProducto.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        } else {            
+            jlImage.setIcon(p.getImage(idProducto, width-20, height-20));
+            jlImage.updateUI();
         }
     }
 
@@ -767,7 +705,6 @@ public class FormProducto extends javax.swing.JFrame {
     private void limpiar() {
         llenarComboRubro();
         jtxtNombreProducto.setText("");
-        jchControlStock.setSelected(false);
         jchEstado.setSelected(false);
     }
 }

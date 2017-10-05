@@ -13,6 +13,7 @@ import almacenes.model.DetalleTransaccion;
 import almacenes.model.FacturaVenta;
 import almacenes.model.Temporal;
 import almacenes.model.ListaProductos;
+import almacenes.model.Producto;
 import almacenes.model.Transaccion;
 import dao.ArqueoDAOImpl;
 import dao.CajaDAOImpl;
@@ -22,6 +23,7 @@ import dao.CreditoDAO;
 import dao.CreditoDAOImpl;
 import dao.DetalleTransaccionDAOImpl;
 import dao.FacturaVentaDAOImpl;
+import dao.ProductoDAO;
 import dao.TemporalDAOImpl;
 import dao.ProductoDAOImpl;
 import dao.TransaccionDAOImpl;
@@ -30,8 +32,10 @@ import dao.reportes.ReporteCreditoDAO;
 import dao.reportes.ReporteCreditoDAOImpl;
 import dao.reportes.ReporteFacturacionDAOImpl;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.sql.Connection;
 import java.sql.Date;
@@ -42,6 +46,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TreeMap;
 import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
@@ -86,6 +92,8 @@ public class FormTransaccion extends javax.swing.JFrame {
         iniciarComponentes();
 
         abrirConexionTemp();
+        
+        llenarProductos();
 
 //        createEnterKeybindings(jtProductos);
     }
@@ -98,6 +106,39 @@ public class FormTransaccion extends javax.swing.JFrame {
 
         jtTemporal.getTableHeader().setFont(f);
         jtTemporal.getTableHeader().setBackground(Color.orange);
+    }
+    
+    public void llenarProductos(){
+        ProductoDAO prodDAOImpl = new ProductoDAOImpl(connectionDB);
+        
+        int width = 120;
+        int height = 120;
+        int lowimage = 30;
+        
+        ArrayList<Producto> lProd = new ArrayList<Producto>();
+        lProd = prodDAOImpl.getListaProductos();
+        for (int i = 0; i < lProd.size(); i++) {
+            JButton bot = new JButton();
+            bot.setVisible(true);
+            bot.setName(String.valueOf(lProd.get(i).getId()));
+            bot.setText(lProd.get(i).getDescripcion());
+            bot.setPreferredSize(new Dimension(width, height));            
+            bot.setIcon(prodDAOImpl.getImage(lProd.get(i).getId(), width - lowimage, height - lowimage));
+            bot.setHorizontalTextPosition(AbstractButton.CENTER);
+            bot.setVerticalTextPosition(AbstractButton.BOTTOM);
+            bot.updateUI();
+            
+            bot.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    String[] cade = e.toString().split(" ");
+                    System.out.println(e.toString());
+                    System.out.println("id boton presionado: " + cade[cade.length-1]);
+                }                
+            });
+            
+            jPanelProductos.add(bot);
+        }
     }
 
     public void iniciarComponentes() {
@@ -739,6 +780,7 @@ public class FormTransaccion extends javax.swing.JFrame {
         jtxtTotalTransaccion = new javax.swing.JTextField();
         jLabel8 = new javax.swing.JLabel();
         jbSalir = new javax.swing.JToggleButton();
+        jPanelProductos = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -803,6 +845,7 @@ public class FormTransaccion extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
+        jtTemporal.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         jtTemporal.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
@@ -827,6 +870,9 @@ public class FormTransaccion extends javax.swing.JFrame {
             jtTemporal.getColumnModel().getColumn(1).setMinWidth(0);
             jtTemporal.getColumnModel().getColumn(1).setPreferredWidth(0);
             jtTemporal.getColumnModel().getColumn(1).setMaxWidth(0);
+            jtTemporal.getColumnModel().getColumn(3).setMinWidth(0);
+            jtTemporal.getColumnModel().getColumn(3).setPreferredWidth(0);
+            jtTemporal.getColumnModel().getColumn(3).setMaxWidth(0);
         }
 
         jlClienteProveedor.setForeground(new java.awt.Color(153, 0, 51));
@@ -947,9 +993,7 @@ public class FormTransaccion extends javax.swing.JFrame {
                     .addComponent(jToggleButton3))
                 .addGap(0, 80, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                        .addGap(42, 42, 42)
-                        .addComponent(jbTransaccion))
+                    .addComponent(jbTransaccion, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                         .addComponent(jpanelCompraVenta, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -959,38 +1003,41 @@ public class FormTransaccion extends javax.swing.JFrame {
                 .addGap(88, 88, 88))
         );
 
+        jPanelProductos.setBackground(new java.awt.Color(243, 250, 180));
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jlidClienteProveedor)
-                .addGap(379, 379, 379))
-            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jPanelProductos, javax.swing.GroupLayout.PREFERRED_SIZE, 422, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 72, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jlTituloFormulario)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(472, 472, 472)
-                        .addComponent(jlTituloFormulario))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(647, 647, 647)
-                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(21, Short.MAX_VALUE))
+                        .addGap(530, 530, 530)
+                        .addComponent(jlidClienteProveedor))
+                    .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(162, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jlTituloFormulario)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(153, 153, 153)
-                        .addComponent(jlidClienteProveedor)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jlTituloFormulario)
                         .addGap(5, 5, 5)
-                        .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addContainerGap())))
+                        .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(198, 198, 198)
+                        .addComponent(jlidClienteProveedor)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jPanelProductos, javax.swing.GroupLayout.PREFERRED_SIZE, 625, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
         );
 
         pack();
@@ -1076,6 +1123,7 @@ public class FormTransaccion extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel8;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanelProductos;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JToggleButton jToggleButton3;
     private javax.swing.JToggleButton jbSalir;

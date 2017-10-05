@@ -5,7 +5,6 @@
  */
 package almacenes.model;
 
-import java.io.InputStream;
 import javax.swing.ImageIcon;
 
 /**
@@ -16,51 +15,62 @@ public class Producto {
     private int id;
     private String claseProducto;
     private int idRubroProducto;
-    private int idMarca;
-    private int idProcedencia;
     private String descripcion;
+    private double precioVenta;
+    private double precioCompra;
     private String tipoCuenta;
     private String estado;
-    private int recargo;
     private int controlStock;
     private String usuario;
-    private InputStream imagen;
+    private ImageIcon imagen;
 
-    public InputStream getImagen() {
+    public double getPrecioVenta() {
+        return precioVenta;
+    }
+
+    public void setPrecioVenta(double precioVenta) {
+        this.precioVenta = precioVenta;
+    }
+
+    public double getPrecioCompra() {
+        return precioCompra;
+    }
+
+    public void setPrecioCompra(double precioCompra) {
+        this.precioCompra = precioCompra;
+    }
+
+    
+    public ImageIcon getImagen() {
         return imagen;
     }
 
-    public void setImagen(InputStream imagen) {
+    public void setImagen(ImageIcon imagen) {
         this.imagen = imagen;
     }
 
-    public Producto(String claseProducto, int idRubroProducto, int idMarca, int idProcedencia, 
-                String descripcion, String tipoCuenta, String estado, 
-                int recargo, int controlStock, String usuario) {
-        this.claseProducto = claseProducto;
-        this.idRubroProducto = idRubroProducto;
-        this.idMarca = idMarca;
-        this.idProcedencia = idProcedencia;
-        this.descripcion = descripcion;
-        this.tipoCuenta = tipoCuenta;
-        this.estado = estado;
-        this.recargo = recargo;
-        this.controlStock = controlStock;
-        this.usuario = usuario;
-    }
-    
     public Producto(String claseProducto, int idRubroProducto, 
                 String descripcion, String tipoCuenta, String estado, 
-                int recargo, int controlStock, String usuario) {
+                String usuario) {
         this.claseProducto = claseProducto;
         this.idRubroProducto = idRubroProducto;        
         this.descripcion = descripcion;
         this.tipoCuenta = tipoCuenta;
-        this.estado = estado;
-        this.recargo = recargo;
-        this.controlStock = controlStock;
+        this.estado = estado;                
         this.usuario = usuario;
     }
+    
+//    public Producto(String claseProducto, int idRubroProducto, 
+//                String descripcion, String tipoCuenta, String estado, 
+//                int recargo, int controlStock, String usuario) {
+//        this.claseProducto = claseProducto;
+//        this.idRubroProducto = idRubroProducto;        
+//        this.descripcion = descripcion;
+//        this.tipoCuenta = tipoCuenta;
+//        this.estado = estado;        
+//        this.controlStock = controlStock;
+//        this.usuario = usuario;
+//    }
 
     public Producto() {
     }
@@ -89,22 +99,6 @@ public class Producto {
         this.idRubroProducto = idRubroProducto;
     }
 
-    public int getIdMarca() {
-        return idMarca;
-    }
-
-    public void setIdMarca(int idMarca) {
-        this.idMarca = idMarca;
-    }
-
-    public int getIdProcedencia() {
-        return idProcedencia;
-    }
-
-    public void setIdProcedencia(int idProcedencia) {
-        this.idProcedencia = idProcedencia;
-    }
-
     public String getDescripcion() {
         return descripcion;
     }
@@ -127,14 +121,6 @@ public class Producto {
 
     public void setEstado(String estado) {
         this.estado = estado;
-    }
-
-    public int getRecargo() {
-        return recargo;
-    }
-
-    public void setRecargo(int recargo) {
-        this.recargo = recargo;
     }
 
     public int getControlStock() {
