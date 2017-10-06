@@ -15,6 +15,7 @@ public class Producto {
     private int id;
     private String claseProducto;
     private int idRubroProducto;
+    private String rubro;
     private String descripcion;
     private double precioVenta;
     private double precioCompra;
@@ -24,6 +25,14 @@ public class Producto {
     private String usuario;
     private ImageIcon imagen;
 
+    public String getRubro() {
+        return rubro;
+    }
+
+    public void setRubro(String rubro) {
+        this.rubro = rubro;
+    }
+    
     public double getPrecioVenta() {
         return precioVenta;
     }

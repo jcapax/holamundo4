@@ -14,7 +14,7 @@ import java.util.ArrayList;
  */
 public interface TemporalDAO {
     public void insertarProductoTemp(Temporal detTransTemp);
-    public void eliminarProdcutoTemp(int idProducto, int idUnidadMedida);
+    public void eliminarProdcutoTemp(int idProducto, int idUnidadMedida, boolean shift);
     public void vaciarProductoTemp();
     public ArrayList<Temporal> getListaTemporal();
     public double totalProductosTemp();

@@ -12,8 +12,6 @@ import almacenes.model.StockProducto;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -41,7 +39,10 @@ public class ProductoDAOImpl implements ProductoDAO {
 
     @Override
     public ArrayList<Producto> getListaProductos() {
-        String sql = "SELECT * FROM producto";
+        String sql = "select p.id, p.claseProducto, p.idRubroProducto, r.descripcion as rubro, "
+                + "p.descripcion, p.precioVenta, p.precioCompra, "
+                + "p.tipoCuenta, p.estado, p.imagen "
+                + "from producto p join rubroProducto r on p.IDRUBROPRODUCTO = r.id";
 
         ArrayList<Producto> lproducto = new ArrayList<Producto>();
 
@@ -55,6 +56,9 @@ public class ProductoDAOImpl implements ProductoDAO {
                 lProd.setDescripcion(rs.getString("descripcion"));
                 lProd.setEstado(rs.getString("estado"));
                 lProd.setIdRubroProducto(rs.getInt("idRubroProducto"));
+                lProd.setRubro(rs.getString("rubro"));
+                lProd.setPrecioVenta(rs.getDouble("precioVenta"));
+                lProd.setPrecioCompra(rs.getDouble("precioCompra"));
                 
                 lproducto.add(lProd);
             }
@@ -233,17 +237,20 @@ public class ProductoDAOImpl implements ProductoDAO {
         String sql = "update producto "
                 + "set idRubroProducto = ?, "
                 + "descripcion = ?, "
+                + "precioVenta = ?, "
+                + "precioCompra = ?, "
                 + "estado = ?, "
-                + "controlStock = ?, usuario = ? "                
+                + "usuario = ? "                
                 + "where id = ?";
         try {
             PreparedStatement ps = connectionDB.prepareStatement(sql);
             ps.setInt(1, producto.getIdRubroProducto());
-            ps.setString(2, producto.getDescripcion());
-            ps.setString(3, producto.getEstado());
-            ps.setInt(4, producto.getControlStock());
-            ps.setString(5, producto.getUsuario());            
-            ps.setInt(6, producto.getId());
+            ps.setString(2, producto.getDescripcion());            
+            ps.setDouble(3, producto.getPrecioVenta());
+            ps.setDouble(4, producto.getPrecioCompra());
+            ps.setString(5, producto.getEstado());
+            ps.setString(6, producto.getUsuario());            
+            ps.setInt(7, producto.getId());
 
             ps.executeUpdate();
 
@@ -309,6 +316,36 @@ public class ProductoDAOImpl implements ProductoDAO {
         g2d.drawImage(image, 0, 0, width, height, null);
         g2d.dispose();
         return bi;
+    }
+
+    @Override
+    public ArrayList<Producto> getProducto(int idProducto) {
+        String sql = "select * from producto where id = ?";
+
+        ArrayList<Producto> lproducto = new ArrayList<Producto>();
+
+        try {
+            PreparedStatement ps = connectionDB.prepareStatement(sql);
+            ps.setInt(1, idProducto);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Producto lProd = new Producto();
+
+                lProd.setId(rs.getInt("id"));                
+                lProd.setDescripcion(rs.getString("descripcion"));
+                lProd.setEstado(rs.getString("estado"));
+                lProd.setIdRubroProducto(rs.getInt("idRubroProducto"));                
+                lProd.setPrecioVenta(rs.getDouble("precioVenta"));
+                lProd.setPrecioCompra(rs.getDouble("precioCompra"));
+                
+                lproducto.add(lProd);
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger(RubroDAOImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return lproducto;
     }
 
 }

@@ -28,5 +28,6 @@ public interface ProductoDAO {
     public void editarProducto(Producto producto, InputStream image, int longitudBytes);
     public void editarProducto(Producto producto);
     public ImageIcon getImage(int idProducto, int width, int height);
+    public ArrayList<Producto> getProducto(int idProducto);
 //    public FileInputStream getImage(int idProducto);
 }

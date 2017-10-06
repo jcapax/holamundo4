@@ -12,7 +12,6 @@ import almacenes.model.Caja;
 import almacenes.model.DetalleTransaccion;
 import almacenes.model.FacturaVenta;
 import almacenes.model.Temporal;
-import almacenes.model.ListaProductos;
 import almacenes.model.Producto;
 import almacenes.model.Transaccion;
 import dao.ArqueoDAOImpl;
@@ -27,7 +26,6 @@ import dao.ProductoDAO;
 import dao.TemporalDAOImpl;
 import dao.ProductoDAOImpl;
 import dao.TransaccionDAOImpl;
-import dao.UnidadProductoDAOImlp;
 import dao.reportes.ReporteCreditoDAO;
 import dao.reportes.ReporteCreditoDAOImpl;
 import dao.reportes.ReporteFacturacionDAOImpl;
@@ -36,6 +34,8 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.sql.Connection;
 import java.sql.Date;
@@ -43,7 +43,6 @@ import java.text.DecimalFormat;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.TreeMap;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -53,6 +52,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 
 /**
  *
@@ -68,6 +68,9 @@ public class FormTransaccion extends javax.swing.JFrame {
     private byte idLugar;
     private String usuario;
     private DecimalFormat df;
+
+    //private static final int SHIFT_OPTION_MASK = InputEvent.ALT_MASK | InputEvent.SHIFT_MASK;
+    private static final int SHIFT_OPTION_MASK = 17;
 
 //    DefaultTableModel dtm;
     public FormTransaccion(Connection connectionDB,
@@ -92,7 +95,7 @@ public class FormTransaccion extends javax.swing.JFrame {
         iniciarComponentes();
 
         abrirConexionTemp();
-        
+
         llenarProductos();
 
 //        createEnterKeybindings(jtProductos);
@@ -100,21 +103,25 @@ public class FormTransaccion extends javax.swing.JFrame {
 
     public void headerTabla() {
         Font f = new Font("Times New Roman", Font.BOLD, 13);
+        Font fh = new Font("Times New Roman", Font.BOLD, 20);
 
 //        jtProductos.getTableHeader().setFont(f);
 //        jtProductos.getTableHeader().setBackground(Color.orange);
-
         jtTemporal.getTableHeader().setFont(f);
         jtTemporal.getTableHeader().setBackground(Color.orange);
+
+        JTableHeader header = jtTemporal.getTableHeader();
+        header.setForeground(new Color(153, 0, 51));
+        header.setFont(fh);
     }
-    
-    public void llenarProductos(){
+
+    public void llenarProductos() {
         ProductoDAO prodDAOImpl = new ProductoDAOImpl(connectionDB);
-        
-        int width = 120;
-        int height = 120;
-        int lowimage = 30;
-        
+
+        int width = 160;
+        int height = 160;
+        int lowimage = 40;
+
         ArrayList<Producto> lProd = new ArrayList<Producto>();
         lProd = prodDAOImpl.getListaProductos();
         for (int i = 0; i < lProd.size(); i++) {
@@ -122,33 +129,41 @@ public class FormTransaccion extends javax.swing.JFrame {
             bot.setVisible(true);
             bot.setName(String.valueOf(lProd.get(i).getId()));
             bot.setText(lProd.get(i).getDescripcion());
-            bot.setPreferredSize(new Dimension(width, height));            
+            bot.setPreferredSize(new Dimension(width, height));
             bot.setIcon(prodDAOImpl.getImage(lProd.get(i).getId(), width - lowimage, height - lowimage));
             bot.setHorizontalTextPosition(AbstractButton.CENTER);
             bot.setVerticalTextPosition(AbstractButton.BOTTOM);
             bot.updateUI();
-            
+
             bot.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     String[] cade = e.toString().split(" ");
-                    System.out.println(e.toString());
-                    System.out.println("id boton presionado: " + cade[cade.length-1]);
-                }                
+                    boolean aux = false;
+                    int idProducto = Integer.parseInt(cade[cade.length - 1]);
+                    if ((e.getModifiers() == SHIFT_OPTION_MASK)) {
+                        TemporalDAOImpl tempDAO = new TemporalDAOImpl(connectionTemp);
+                        aux = true;
+                        tempDAO.eliminarProdcutoTemp(idProducto, 0, true);
+
+                        llenarTablaTemporal();
+                    }
+                    insertarTemp(idProducto, aux);
+                }
             });
-            
+
             jPanelProductos.add(bot);
         }
     }
 
     public void iniciarComponentes() {
         byte idTerminal = 1;
-        
+
         ArqueoDAOImpl arq = new ArqueoDAOImpl(connectionDB);
 
         llenarTablaProductos("");
         jtxtDetalle.setText("");
-        
+
 //        jlIdProducto.setVisible(false);
 //        jlIdUnidadMedida.setVisible(false);
         jlidClienteProveedor.setText("0");
@@ -166,7 +181,6 @@ public class FormTransaccion extends javax.swing.JFrame {
 //                jtxtValorUnitario.setEnabled(true);
 //                jtxtValorUnitario.setEditable(true);
 //                jtxtValorUnitario.setText("");
-
                 jlClienteProveedor.setVisible(false);
                 jcClienteProveedor.setVisible(false);
 
@@ -182,7 +196,6 @@ public class FormTransaccion extends javax.swing.JFrame {
 
 //                jtxtValorUnitario.setEnabled(false);
 //                jtxtValorUnitario.setEditable(false);
-
                 jlClienteProveedor.setEnabled(false);
                 jcClienteProveedor.setEnabled(false);
 
@@ -201,7 +214,6 @@ public class FormTransaccion extends javax.swing.JFrame {
 
 //                jtxtValorUnitario.setEnabled(false);
 //                jtxtValorUnitario.setEditable(false);
-
                 jlClienteProveedor.setEnabled(true);
                 jcClienteProveedor.setEnabled(true);
 
@@ -356,7 +368,7 @@ public class FormTransaccion extends javax.swing.JFrame {
         int idEntregaTransaccion = 0;
         int idClienteProveedor = Integer.parseInt(jlidClienteProveedor.getText());
         String detalle = jtxtDetalle.getText().toUpperCase();
-        
+
 //        int idTipoTransaccion = 3; // credito -  plata
         idTransaccion = resgistrarTransaccion(idTipoTransaccion);
         registrarDetalleTransaccion(idTransaccion);
@@ -367,26 +379,26 @@ public class FormTransaccion extends javax.swing.JFrame {
         registrarDetalleTransaccion(idEntregaTransaccion);
 
         registrarEntregaTransaccion(idEntregaTransaccion, idTransaccion);
-        
+
         insertarCredito(idTransaccion, idClienteProveedor, detalle);
-        
+
         ReporteCreditoDAO rep = new ReporteCreditoDAOImpl(connectionDB, usuario);
         rep.vistaPreviaCredito(idTransaccion);
 
         limpiar();
 
-        JOptionPane.showMessageDialog(this, "Credito generado con exito");        
+        JOptionPane.showMessageDialog(this, "Credito generado con exito");
         vaciarProductosTemporales();
         iniciarComponentes();
-        
+
     }
 
-    public void insertarCredito(int idTransaccion, int idClienteProveedor, String detalle){
+    public void insertarCredito(int idTransaccion, int idClienteProveedor, String detalle) {
         CreditoDAO cred = new CreditoDAOImpl(connectionDB);
         cred.insertarCredito(idTransaccion, idClienteProveedor, detalle);
-        
+
     }
-    
+
     public void registrarFactura(int idTransaccion) {
         TransaccionDAOImpl tran = new TransaccionDAOImpl(connectionDB);
         FacturaVentaDAOImpl facDaoImpl = new FacturaVentaDAOImpl(connectionDB);
@@ -481,9 +493,8 @@ public class FormTransaccion extends javax.swing.JFrame {
 
         int filSel = jtTemporal.getSelectedRow();
         int idProducto = (int) jtTemporal.getValueAt(filSel, 0);
-        int idUnidadMedida = (int) jtTemporal.getValueAt(filSel, 1);
 
-        tempDAO.eliminarProdcutoTemp(idProducto, idUnidadMedida);
+        tempDAO.eliminarProdcutoTemp(idProducto, 0, false);
 
         llenarTablaTemporal();
     }
@@ -522,31 +533,34 @@ public class FormTransaccion extends javax.swing.JFrame {
         calcularImportTotalTemp();
     }
 
-    public void insertarTemp() {
-
+    public void insertarTemp(int idProducto, boolean delete) {
+        ProductoDAO p = new ProductoDAOImpl(connectionDB);
         Temporal temp = new Temporal();
 
-//        int idProducto = Integer.valueOf(jlIdProducto.getText());
-//        int idUnidadMedida = Integer.valueOf(jlIdUnidadMedida.getText());
-//        String nombreProducto = jtxtNombreProducto.getText();
+        ArrayList<Producto> getP = p.getProducto(idProducto);
+
+        int idUnidadMedida = 1;
+        String nombreProducto = getP.get(0).getDescripcion();
         String simbolo = "";
-//        double cantidad = Double.valueOf(jtxtCantidad.getText());
-//        double valorUnitario = Double.valueOf(jtxtValorUnitario.getText());
-//        double valorTotal = cantidad * valorUnitario;
+        double cantidad = 1;
+        double valorUnitario = getP.get(0).getPrecioVenta();
+        double valorTotal = cantidad * valorUnitario;
         String tipoValor = "N";// normal
 
-//        temp.setCantidad(cantidad);
-//        temp.setIdProducto(idProducto);
-//        temp.setIdUnidadMedida(idUnidadMedida);
-//        temp.setNombreProducto(nombreProducto);
+        temp.setCantidad(cantidad);
+        temp.setIdProducto(idProducto);
+        temp.setIdUnidadMedida(idUnidadMedida);
+        temp.setNombreProducto(nombreProducto);
         temp.setSimbolo(simbolo);
         temp.setTipoValor(tipoValor);
-//        temp.setValorTotal(valorTotal);
-//        temp.setValorUnitario(valorUnitario);
+        temp.setValorTotal(valorTotal);
+        temp.setValorUnitario(valorUnitario);
 
         TemporalDAOImpl tempDAOImpl = new TemporalDAOImpl(connectionTemp);
-        tempDAOImpl.insertarProductoTemp(temp);
 
+        if (!delete) {
+            tempDAOImpl.insertarProductoTemp(temp);
+        }
         llenarTablaTemporal();
     }
 
@@ -569,7 +583,6 @@ public class FormTransaccion extends javax.swing.JFrame {
 //        jlIdUnidadMedida.setText(String.valueOf(idUnidadMedida));
 //
 //        jlStockProducto.setText(String.valueOf(stock));
-
     }
 
     public void llenarTablaProductos(String criterio) {
@@ -851,12 +864,19 @@ public class FormTransaccion extends javax.swing.JFrame {
 
             },
             new String [] {
-                "idProducto", "idUnidadMedida", "Descripcion", "Simbolo", "Cantidad", "PrecioUnitario", "PrecioTotal"
+                "idProducto", "idUnidadMedida", "Descripcion", "Simbolo", "Cantidad", "P/Unit.", "P/Total"
             }
         ) {
+            Class[] types = new Class [] {
+                java.lang.Object.class, java.lang.Object.class, java.lang.String.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
+            };
             boolean[] canEdit = new boolean [] {
                 false, false, true, true, true, true, true
             };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit [columnIndex];
@@ -870,9 +890,21 @@ public class FormTransaccion extends javax.swing.JFrame {
             jtTemporal.getColumnModel().getColumn(1).setMinWidth(0);
             jtTemporal.getColumnModel().getColumn(1).setPreferredWidth(0);
             jtTemporal.getColumnModel().getColumn(1).setMaxWidth(0);
+            jtTemporal.getColumnModel().getColumn(2).setMinWidth(280);
+            jtTemporal.getColumnModel().getColumn(2).setPreferredWidth(280);
+            jtTemporal.getColumnModel().getColumn(2).setMaxWidth(280);
             jtTemporal.getColumnModel().getColumn(3).setMinWidth(0);
             jtTemporal.getColumnModel().getColumn(3).setPreferredWidth(0);
             jtTemporal.getColumnModel().getColumn(3).setMaxWidth(0);
+            jtTemporal.getColumnModel().getColumn(4).setMinWidth(100);
+            jtTemporal.getColumnModel().getColumn(4).setPreferredWidth(100);
+            jtTemporal.getColumnModel().getColumn(4).setMaxWidth(100);
+            jtTemporal.getColumnModel().getColumn(5).setMinWidth(100);
+            jtTemporal.getColumnModel().getColumn(5).setPreferredWidth(100);
+            jtTemporal.getColumnModel().getColumn(5).setMaxWidth(100);
+            jtTemporal.getColumnModel().getColumn(6).setMinWidth(120);
+            jtTemporal.getColumnModel().getColumn(6).setPreferredWidth(120);
+            jtTemporal.getColumnModel().getColumn(6).setMaxWidth(120);
         }
 
         jlClienteProveedor.setForeground(new java.awt.Color(153, 0, 51));
@@ -991,7 +1023,7 @@ public class FormTransaccion extends javax.swing.JFrame {
                     .addComponent(jLabel8)
                     .addComponent(jtxtEliminar)
                     .addComponent(jToggleButton3))
-                .addGap(0, 80, Short.MAX_VALUE)
+                .addGap(0, 170, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jbTransaccion, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
@@ -1010,16 +1042,15 @@ public class FormTransaccion extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jPanelProductos, javax.swing.GroupLayout.PREFERRED_SIZE, 422, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 72, Short.MAX_VALUE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jPanelProductos, javax.swing.GroupLayout.PREFERRED_SIZE, 844, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jlTituloFormulario)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(530, 530, 530)
                         .addComponent(jlidClienteProveedor))
-                    .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(162, Short.MAX_VALUE))
+                    .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1029,14 +1060,13 @@ public class FormTransaccion extends javax.swing.JFrame {
                         .addContainerGap()
                         .addComponent(jlTituloFormulario)
                         .addGap(5, 5, 5)
-                        .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jPanelProductos, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(198, 198, 198)
                         .addComponent(jlidClienteProveedor)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jPanelProductos, javax.swing.GroupLayout.PREFERRED_SIZE, 625, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
