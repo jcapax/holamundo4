@@ -41,9 +41,9 @@ public class ReporteFacturacionDAOImpl implements ReporteFacturacionDAO{
         parametros.put("cadenaQr", cadenaQr);
         parametros.put("valorTotalLiteral", valorTotalLiteral);
 
-        //this.imprimir.vistaPreviaReporte("Factura de Venta", "reporte_factura.jrxml", parametros);
-        this.imprimir.impresionDirecta("Factura de Venta", "reporte_factura.jrxml", parametros, false);
-        this.imprimir.impresionDirecta("Factura de Venta", "reporte_factura_copia.jrxml", parametros, false);
+        this.imprimir.vistaPreviaReporte("Factura de Venta", "reporte_factura.jrxml", parametros);
+//        this.imprimir.impresionDirecta("Factura de Venta", "reporte_factura.jrxml", parametros, false);
+//        this.imprimir.impresionDirecta("Factura de Venta", "reporte_factura_copia.jrxml", parametros, false);
     }
     
 }

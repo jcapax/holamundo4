@@ -67,6 +67,7 @@ public class TemporalDAOImpl implements TemporalDAO {
         }
         return cantidad;
     }
+
     public double pUnitProductoExistente(int idProducto) {
         double pUnit = 0;
 
@@ -168,6 +169,24 @@ public class TemporalDAOImpl implements TemporalDAO {
                 Logger.getLogger(TemporalDAOImpl.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+    }
+
+    @Override
+    public void eliminarProdcutoTemp(int idProducto, int idUnidadMedida) {
+
+        String sql = "delete from detalleTransaccionTemp "
+                + "where idProducto = ? and idUnidadMedida = ?";
+        try {
+            PreparedStatement ps = sqlite.prepareStatement(sql);
+            ps.setInt(1, idProducto);
+            ps.setInt(2, idUnidadMedida);
+
+            int n = ps.executeUpdate();
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(TemporalDAOImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
 
     @Override
